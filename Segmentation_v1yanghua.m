@@ -31,7 +31,7 @@ for i = 1:N
     normalized{i} = frame *( mean_intensity(1) / mean_intensity(i) );
     
     
-    % Through an GUI, get rid of the interference of the cneter shadow.
+    % Through an GUI, get rid of the interference of the center shadow.
     % Also get cornea boundary via threshold method.
     [boundary_cornea{i}, crop_posi1, crop_posi2] = fix_center_shadow(crop_posi1, crop_posi2, normalized{i}, 5, 2);
     
@@ -43,9 +43,6 @@ for i = 1:N
     % determined later when the iris contour is found.
     meshwork_appro_l(i,:) = critical_points(boundary_cornea{i}, true, 'left', 0.5, 15, 3);
     meshwork_appro_r(i,:) = critical_points(boundary_cornea{i}, true, 'right', 0.5, 15, 3);
-    
-    %     ml = critical_points(boundary{i}, false, 'left', 0.6, 10, 3);
-    %     mr = critical_points(boundary{i}, false, 'right', 0.6, 10, 3);
     
     hold on;
     A = [meshwork_appro_l(i,:); meshwork_appro_r(i,:)];
