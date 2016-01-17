@@ -1,4 +1,4 @@
-FILE_Matlab_output = '/Users/yuquan/GitHub/de_terminal_copy/Matlab_output2.dat';
+FILE_Matlab_output = '/Users/yuquan/GitHub/de_terminal_copy/Matlab_output.dat';
 
 scale_factor = 0.027;   % computed from pixel to mm conversion of oct image
 
@@ -80,7 +80,8 @@ fileID = fopen(FILE_Matlab_output, 'w');
 fprintf(fileID, 'Number of boundary nodes: %d\n', length(boundary_node_set));
 fprintf(fileID, 'Number of nodes: %d\n', mesh_obj.num_nodes);
 fprintf(fileID, 'Number of elements: %d\n<boundary node set>\n', mesh_obj.num_elements);
-fprintf(fileID, '%6d\n</boundary node set>\n\n',boundary_node_set);
+fprintf(fileID, '%6d  ',boundary_node_set);
+fprintf(fileID, '\n</boundary node set>\n\n');
 % output to txt file (feb format)
 print_feb(mesh_obj, fileID);
 fclose(fileID);

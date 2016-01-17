@@ -64,8 +64,6 @@ classdef revolve_mesh < revolve_points
                 update_elements( obj.elements_2D, obj.num_replicates - 1);
             mesh_3D = mesh_class( nodes, elements_3D);
         end
-     
     end
-    
 end
 
