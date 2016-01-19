@@ -17,7 +17,6 @@ classdef mesh_class
         dimensionality
         is3D
         is2D
-        is1D
         num_nodes
         num_elements
     end
@@ -36,15 +35,17 @@ classdef mesh_class
             
         
         function TF = get.is2D(obj)
-            TF = (obj.dimensionality == 2);
+            TF = true;
+            
+            for e = obj.elements
+                if e.is_3D
+                    TF = false; return;
+                end
+            end
         end
         
         function TF = get.is3D(obj)
-            TF = (obj.dimensionality == 3);
-        end
-        
-        function TF = get.is1D(obj)
-            TF = (obj.dimensionality == 1);
+            TF = ~ get.is2D;
         end
         
         function result = get.num_nodes(obj)
@@ -71,10 +72,10 @@ classdef mesh_class
                 markertype = '.r';
             end
             
-            if obj.is3D
-                scatter3( obj.node_list(:,1), obj.node_list(:,2), obj.node_list(:,3), markertype);
-            else
+            if obj.is2D
                 scatter( obj.node_list(:,1), obj.node_list(:,2), markertype);
+            else
+                scatter3( obj.node_list(:,1), obj.node_list(:,2), obj.node_list(:,3), markertype);
             end
             
             hold on

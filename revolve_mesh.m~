@@ -47,9 +47,7 @@ classdef revolve_mesh < revolve_points
                         [e_in.node_index + index*obj.num_basepoints, ...
                         e_in.node_index + index2* obj.num_basepoints], ...
                         e_in.materialID);
-                    if e_out.type == element_type.quad4
-                        e_out.node_index([3,4]) = e_out.node_index([4,3]);
-                    end
+                    if e_out.
                 else
                     e_out = e_in;
                     for j = 1:numel(e_in)

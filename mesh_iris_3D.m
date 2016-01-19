@@ -1,4 +1,4 @@
-function [ mesh_obj_3D, nx, ny, mesh_obj_2D,boundary_node_set ] = mesh_iris_3D( top_iris, bottom_iris, origin, num_replicates, plane, axis, ...
+function [ mesh_obj_3D, nx, ny, mesh_obj_2D,boundary_node_set, revolve_obj ] = mesh_iris_3D( top_iris, bottom_iris, origin, num_replicates, plane, axis, ...
     mesh_opt)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
@@ -12,10 +12,10 @@ origin(plane) = 0; origin(axis) = 300;
 
 [mesh_obj_2D, nx, ny,~,boundary_node_set] = mesh_iris_2D(top_iris, bottom_iris, mesh_opt);
 
-r = revolve_mesh( mesh_obj_2D, plane, axis, origin, ...
+revolve_obj = revolve_mesh( mesh_obj_2D, plane, axis, origin, ...
     num_replicates);
 
-mesh_obj_3D = generate3D(r);
+mesh_obj_3D = generate3D(revolve_obj);
 
 end
 

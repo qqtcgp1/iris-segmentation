@@ -2,7 +2,9 @@ classdef revolve_points
     %This class is used to revolve a set of 2D points about an axis in 360
     %degrees.
     
-    properties (Access = public)
+    properties (Access = 
+    
+    properties (Access = protected)
         base3D
         plane  %plane of the 2D base
         axis   % axis of rotation

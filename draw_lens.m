@@ -1,3 +1,5 @@
+Lens_Node_Density = 6; %number of nodes on the half lens curve
+
 figure, imshow( 255 - uint8(original{1}) ); hold on
 
 origin = 0.5*(meshwork_l{1} + meshwork_r{1});
@@ -51,13 +53,26 @@ h_text = uicontrol('style', 'text', 'string', 'mark the center', ...
  % get nodes on the curve
  minx = min(leftx) - 30;
  maxx = max(rightx) + 30;
- nodes_rightx = linspace(center(1), maxx, N);
- nodes_leftx = linspace(minx, center(1), N);
  
- nodes_righty = polyval(pright, nodes_rightx);
+ % the nodes are ordered from the center to the sides.
+ nodes_rightx = linspace(center(1), maxx, Lens_Node_Density);
+ nodes_leftx = flip(linspace(minx, center(1), Lens_Node_Density));  % these are row vectors
+ 
+ nodes_righty = polyval(pright, nodes_rightx);  %also row vectors
  nodes_lefty = polyval(pleft, nodes_leftx);
  
- % create elements (line segments)
+ % node coordinates
+ lens_nodes_left = [nodes_leftx; nodes_lefty]';
+ lens_nodes_right = [nodes_rightx; nodes_righty]';
  
+ node_index = [1:Lens_Node_Density-1; 2:Lens_Node_Density]';
+ % create elements (line segments)
+ for index = 1:length(node_index)
+     lens_elements(index) = element( element_type.line2, node_index(index,:), 10 );
+ end
  
  % integrate this thing with the mesh object
+ lens_mesh_obj_left = mesh_class(lens_nodes_left, lens_elements);
+ lens_mesh_obj_right = mesh_class(lens_nodes_right, lens_elements);
+ 
+ 
