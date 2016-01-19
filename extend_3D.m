@@ -1,3 +1,5 @@
+% <User Specified Variables>
+
 FILE_Matlab_output = '/Users/yuquan/GitHub/de_terminal_copy/Matlab_output.dat';
 
 scale_factor = 0.027;   % computed from pixel to mm conversion of oct image
@@ -8,12 +10,16 @@ true_data_frame = [5,7,9,11,13,15,17,19,21,25];
 
 Lens_Node_Density = 6; %number of nodes on the half lens curve
 
+Order_Lens_Poly = 3;
+
+% </User Specified Variables>
+
 
 origin = 0.5*(meshwork_l{1} + meshwork_r{1});   % mid-point of the image
 
 
-% UI to mark the lens contour manually. Look at the text instruction of the
-% UI.
+% <UI to mark the lens contour manually>
+% Look at the text instruction of the UI.
 figure, imshow( 255 - uint8(original{1}) ); hold on
 plot( origin(2), origin(1), 'or', 'linew', 7 );
 h_text = uicontrol('style', 'text', 'string', 'mark the center', ...
@@ -34,91 +40,88 @@ h_text = uicontrol('style', 'text', 'string', 'mark the center', ...
  scatter(tip_r{index}(:,2), tip_r{index}(:,1), 'ob', 'linew', 8);
  
  set(h_text, 'string', 'mark points on the left lens bounary, then press Enter');
- [leftx, lefty] = ginput;
- scatter( leftx, lefty, 'bx');
+ [lens_leftx_marked, lens_lefty_marked] = ginput;
+ scatter( lens_leftx_marked, lens_lefty_marked, 'bx');
  
   set(h_text, 'string', 'mark points on the right lens bounary, then press Enter');
- [rightx, righty] = ginput;
- scatter( rightx, righty, 'bx');
- % End of the UI.
+ [lens_rightx_marked, lens_righty_marked] = ginput;
+ scatter( lens_rightx_marked, lens_righty_marked, 'bx');
+ % </UI>
  
  
- % Compute the Nodes and Mesh of the lens contour.
- leftx = [center(1); leftx]; lefty = [center(2); lefty];
- rightx = [center(1); rightx]; righty = [center(2); righty];
+ % <polynomial fit of the lens contour>
+ lens_leftx_marked = [center(1); lens_leftx_marked]; lens_lefty_marked = [center(2); lens_lefty_marked];
+ lens_rightx_marked = [center(1); lens_rightx_marked]; lens_righty_marked = [center(2); lens_righty_marked];
  
- pleft = polyfit(leftx, lefty, 3);    % Order 3 polynomial
- pright = polyfit(rightx, righty, 3); % Order 3 polynomial, to fit the half lens.
+ lens_pleft = polyfit(lens_leftx_marked, lens_lefty_marked, Order_Lens_Poly);    % Order 3 polynomial
+ lens_pright = polyfit(lens_rightx_marked, lens_righty_marked, Order_Lens_Poly); % Order 3 polynomial, to fit the half lens.
+ % </polynomial fit of the lens contour>
  
- % Plot of the lens contour
- leftxplot = min(leftx) - 100:0.1:max(leftx);
- leftyplot = polyval(pleft, leftxplot);
- rightxplot = min(rightx):0.1:max(rightx)+100;
- rightyplot = polyval(pright, rightxplot);
+ % <Plot the lens>
+ leftxplot = min(lens_leftx_marked) - 100:0.1:max(lens_leftx_marked);
+ leftyplot = polyval(lens_pleft, leftxplot);
+ rightxplot = min(lens_rightx_marked):0.1:max(lens_rightx_marked)+100;
+ rightyplot = polyval(lens_pright, rightxplot);
  plot(leftxplot, leftyplot, 'r');
  plot(rightxplot, rightyplot, 'r');
- % End of plot of the lens contour
+ % </Plot the lens>
  
- % get nodes on the curve
- minx = min(leftx) - 30;
- maxx = max(rightx) + 30;
+ 
+ % <Left and right ends of the lens curve>
+ lens_node_minx = min(lens_leftx_marked) - 30;
+ lens_node_maxx = max(lens_rightx_marked) + 30;
+ % </Left and right ends of the lens curve>
+
  
  % the nodes are ordered from the center to the sides.
- nodes_rightx = linspace(center(1), maxx, Lens_Node_Density);
- nodes_leftx = flip(linspace(minx, center(1), Lens_Node_Density));  % these are row vectors
+ lens_nodes_rightx = linspace(center(1), lens_node_maxx, Lens_Node_Density);
+ lens_nodes_leftx = flip(linspace(lens_node_minx, center(1), Lens_Node_Density));  % these are row vectors
  
- nodes_righty = polyval(pright, nodes_rightx);  %also row vectors
- nodes_lefty = polyval(pleft, nodes_leftx);
+ lens_nodes_righty = polyval(lens_pright, lens_nodes_rightx);  %also row vectors
+ lens_nodes_lefty = polyval(lens_pleft, lens_nodes_leftx);
  
  % node coordinates
- lens_nodes_left = [nodes_leftx; nodes_lefty]';
- lens_nodes_right = [nodes_rightx; nodes_righty]';
+ lens_nodes_left = [lens_nodes_leftx; lens_nodes_lefty]';
+ lens_nodes_right = [lens_nodes_rightx; lens_nodes_righty]';
  
- node_index = [1:Lens_Node_Density-1; 2:Lens_Node_Density]';
- % create elements (line segments)
- for index = 1:length(node_index)
-     lens_elements(index) = element( element_type.line2, node_index(index,:), 10 );
+ % <Element node connectivity>
+ lens_node_index = [1:Lens_Node_Density-1; 2:Lens_Node_Density]';
+ % </Element node connectivity>
+ 
+ % <create 1D lens elements (line segments)>
+ for index = 1:length(lens_node_index)
+     lens_elements(index) = element( element_type.line2, lens_node_index(index,:), 10 );
  end
+  % </create 1D lens elements (line segments)>
+  
  
- % integrate this thing with the mesh object
+ % <creat 1D lens mesh>
  lens_mesh_obj_left = mesh_class(lens_nodes_left, lens_elements);
  lens_mesh_obj_right = mesh_class(lens_nodes_right, lens_elements);
+ % </create 1D lens mesh>
  
- 
- 
+ % <3D iris mesh, axial symmetric>
 mesh_opt = struct('mesh_size', [5,5], 'imsiz', size(original{1}), 'dilator_muscle',1, ...
     'dilator_width', 1, 'do_refine',false, 'sphincter_muscle', 1, 'dilator_retreat', 1, 'sphincter_wholewidth', 0);
 
 % mesh object: iris object
 [mesh_obj, nx, ny, mesh_right, boundary_node_set, revolve_obj] = mesh_iris_3D( top_iris_r{1}, bottom_iris_r_smooth{1}, origin(2), num_replicates,3,2,mesh_opt);
+% </3D iris mesh, axial symmetric>
 
+% <mesh the left iris contour, 2D>
 mesh_opt.left_right = 'left';
 mesh_opt.mesh_size = [nx, ny];
 mesh_left_original = mesh_iris_2D( top_iris_l{1},bottom_iris_l_smooth{1}, mesh_opt);
+% </mesh the left iris contour, 2D>
 
-
-
-
-% Add Iris mesh and lens mesh in 2D
-%mesh_right = mesh_right + lens_mesh_obj_right;
-%mesh_left_original = mesh_left_original + lens_mesh_obj_left;
-
+% <The non-axial-symmetric 3D mesh>
 mesh_left_right = mesh_left_original;
 mesh_left_right.node_list(:,1) = - mesh_left_original.node_list(:,1) + 2* origin(2);
-
-
-
-
-
-% Add iris mesh and lens mesh in 3D
-%mesh_obj = mesh_obj + lens_mesh_obj_right_3D;
 
 num_node_2D = length( mesh_left_original.node_list );
 right_node = mesh_obj.node_list( 1: num_node_2D,:);
 
 left_right_diff = mesh_left_right.node_list - mesh_right.node_list;
-
-
 
 for i = 1:num_replicates/2
     angle = i*(2*pi/num_replicates);
@@ -136,10 +139,12 @@ for i = 1:num_replicates/2
             modification_projected;
    end
 end
+% </Then non-axial-symmetric 3D mesh>
 
+% <The non-axial-symmetric 3D lens mesh>
 % revolve the lens mesh, into 3D surface
-revolve_obj_lens = revolve_mesh(lens_mesh_obj_right, revolve_obj.plane, revolve_obj.axis, revolve_obj.origin, revolve_obj.num_replicates);
-lens_mesh_obj_right_3D = generate3D(revolve_obj_lens);
+lens_revolve_obj = revolve_mesh(lens_mesh_obj_right, revolve_obj.plane, revolve_obj.axis, revolve_obj.origin, revolve_obj.num_replicates);
+lens_mesh_obj_right_3D = generate3D(lens_revolve_obj);
 
 mesh_left_right_lens = lens_mesh_obj_left;
 mesh_left_right_lens.node_list(:,1) = - mesh_left_right_lens.node_list(:,1) + 2* origin(2);
@@ -168,8 +173,10 @@ for i = 1:num_replicates/2
 end
 
 mesh_obj = mesh_obj + lens_mesh_obj_right_3D;
-mesh_obj = flip_orientation(mesh_obj);
+% </The non-axial-symmetric 3D lens mesh>
 
+
+mesh_obj = flip_orientation(mesh_obj);
 
 % one-liner transformation, combined in a single equation:
 zmin = min(-mesh_obj.node_list(:,2)); l = length(mesh_obj.node_list);
