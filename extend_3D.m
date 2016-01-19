@@ -100,20 +100,18 @@ mesh_left_original = mesh_iris_2D( top_iris_l{1},bottom_iris_l_smooth{1}, mesh_o
 
 
 % Add Iris mesh and lens mesh in 2D
-mesh_right = mesh_right + lens_mesh_obj_right;
-mesh_left_original = mesh_left_original + lens_mesh_obj_left;
+%mesh_right = mesh_right + lens_mesh_obj_right;
+%mesh_left_original = mesh_left_original + lens_mesh_obj_left;
 
 mesh_left_right = mesh_left_original;
 mesh_left_right.node_list(:,1) = - mesh_left_original.node_list(:,1) + 2* origin(2);
 
 
-% revolve the lens mesh, into 3D surface
-revolve_obj = revolve_mesh(lens_mesh_obj_right, revolve_obj.plane, revolve_obj.axis, revolve_obj.origin, revolve_obj.num_replicates);
-lens_mesh_obj_right_3D = generate3D(revolve_obj);
+
 
 
 % Add iris mesh and lens mesh in 3D
-mesh_obj = mesh_obj + lens_mesh_obj_right_3D;
+%mesh_obj = mesh_obj + lens_mesh_obj_right_3D;
 
 num_node_2D = length( mesh_left_original.node_list );
 right_node = mesh_obj.node_list( 1: num_node_2D,:);
@@ -139,6 +137,37 @@ for i = 1:num_replicates/2
    end
 end
 
+% revolve the lens mesh, into 3D surface
+revolve_obj_lens = revolve_mesh(lens_mesh_obj_right, revolve_obj.plane, revolve_obj.axis, revolve_obj.origin, revolve_obj.num_replicates);
+lens_mesh_obj_right_3D = generate3D(revolve_obj_lens);
+
+mesh_left_right_lens = lens_mesh_obj_left;
+mesh_left_right_lens.node_list(:,1) = - mesh_left_right_lens.node_list(:,1) + 2* origin(2);
+
+
+num_node_2D_lens = length( mesh_left_right_lens.node_list );
+right_node_lens = lens_mesh_obj_right_3D.node_list( 1: num_node_2D_lens,:);
+
+left_right_diff_lens = mesh_left_right_lens.node_list - lens_mesh_obj_right.node_list;
+
+for i = 1:num_replicates/2
+    angle = i*(2*pi/num_replicates);
+    % modify the ith section, which is mesh_obj.node_list( 1 + (i)* num_node_2D : (i+1)*num_node_2D,:)
+    
+    modification_2D = (angle / pi) * left_right_diff_lens;
+    modification_projected = [modification_2D(:,1) * cos(angle), modification_2D(:,2), modification_2D(:,1)* sin(angle)];    
+    lens_mesh_obj_right_3D.node_list( 1 + (i)* num_node_2D_lens : (i+1)*num_node_2D_lens,:) = ...
+        lens_mesh_obj_right_3D.node_list( 1 + (i)* num_node_2D_lens : (i+1)*num_node_2D_lens,:) + modification_projected;
+    
+   if i ~= num_replicates/2
+        modification_projected = [modification_2D(:,1) * cos(angle), modification_2D(:,2), - modification_2D(:,1)* sin(angle)];
+        lens_mesh_obj_right_3D.node_list( num_node_2D_lens * num_replicates - i*num_node_2D_lens + 1: num_node_2D_lens * num_replicates - (i-1)*num_node_2D_lens ,:) = ...
+            lens_mesh_obj_right_3D.node_list( num_node_2D_lens * num_replicates - i*num_node_2D_lens + 1: num_node_2D_lens * num_replicates - (i-1)*num_node_2D_lens ,:) +...
+            modification_projected;
+   end
+end
+
+mesh_obj = mesh_obj + lens_mesh_obj_right_3D;
 mesh_obj = flip_orientation(mesh_obj);
 
 
