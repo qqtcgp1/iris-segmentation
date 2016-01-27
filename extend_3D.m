@@ -8,7 +8,7 @@ num_replicates = 40;
 
 true_data_frame = [5,7,9,11,13,15,17,19,21,25];
 
-Lens_Node_Density = 6; %number of nodes on the half lens curve
+Lens_Node_Density = 60; %number of nodes on the half lens curve
 
 Order_Lens_Poly = 3;
 
@@ -74,8 +74,8 @@ h_text = uicontrol('style', 'text', 'string', 'mark the center', ...
 
  
  % the nodes are ordered from the center to the sides.
- lens_nodes_rightx = linspace(center(1), lens_node_maxx, Lens_Node_Density);
- lens_nodes_leftx = flip(linspace(lens_node_minx, center(1), Lens_Node_Density));  % these are row vectors
+ lens_nodes_rightx = linspace(center(1)+5, lens_node_maxx, Lens_Node_Density);
+ lens_nodes_leftx = flip(linspace(lens_node_minx, center(1)-5, Lens_Node_Density));  % these are row vectors
  
  lens_nodes_righty = polyval(lens_pright, lens_nodes_rightx);  %also row vectors
  lens_nodes_lefty = polyval(lens_pleft, lens_nodes_leftx);
